@@ -1,5 +1,3 @@
 package ir.saeidbabaei.bookstore.exception
 
-import org.springframework.http.HttpStatus
-
-class BookNotFoundException(val statusCode: HttpStatus, val reason: String) : Exception()
+class BookNotFoundException(val title: String, val reason: String) : Exception()

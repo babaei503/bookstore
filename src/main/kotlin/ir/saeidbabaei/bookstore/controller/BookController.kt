@@ -12,6 +12,13 @@ import org.springframework.web.bind.annotation.RequestBody
 import java.util.UUID
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpStatus
+import org.springframework.web.util.UriComponentsBuilder
+import org.springframework.util.ObjectUtils
+import org.springframework.http.HttpHeaders
+import org.slf4j.LoggerFactory
+import ir.saeidbabaei.bookstore.exception.BookNotFoundException
 
 /**
  * Controller for REST API endpoints
@@ -19,23 +26,79 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping("/api")
 @RestController
 class BookController(private val bookService: BookService) {
-	
+
+	private val Logger = LoggerFactory.getLogger(javaClass)
+		
 	@GetMapping("/books")
-    fun getAllBooks(): List<Book> = bookService.getAllBooks()
+    fun getAllActiveBooks(): ResponseEntity<List<Book>> {	
+		
+		val activeBooks = bookService.getAllActiveBooks()
+		
+		if (activeBooks.isEmpty()) {
+			
+			Logger.info("There is no active books");
+			
+	        return ResponseEntity<List<Book>>(HttpStatus.NO_CONTENT)
+	    }
+		
+	    return ResponseEntity<List<Book>>(activeBooks, HttpStatus.OK)
+		
+	}
 
     @GetMapping("/books/{uuid}")
-    fun getBooksById(@PathVariable("uuid") bookId: UUID): Book =
-            bookService.getBooksById(bookId)
+    fun getBookById(@PathVariable("uuid") bookId: UUID): ResponseEntity<Book> {
+		
+		try
+		{			
+		    return ResponseEntity<Book>(bookService.getBookById(bookId), HttpStatus.OK)			
+		}
+		catch (e: BookNotFoundException)
+		{
+			Logger.info("There is no book with id: {}", bookId);
+			Logger.debug("There is no book with id: {} title:{} message:{}", bookId, e.title, e.message);
+			
+		    return ResponseEntity<Book>(HttpStatus.NOT_FOUND)
+		}
+		
+	}	
 
-    @PostMapping("/books")
-    fun createBook(@RequestBody payload: Book): Book = bookService.createBook(payload)
+    @PostMapping("/book")
+	fun createBook(@RequestBody payload: Book, uri: UriComponentsBuilder): ResponseEntity<Book> {
+		
+		val newBook = bookService.createBook(payload)
+		
+		if (ObjectUtils.isEmpty(newBook)) {
+			
+			Logger.debug("The book is not saved");
+			
+	        return ResponseEntity<Book>(HttpStatus.BAD_REQUEST)
+			
+	    }
+		
+	    val headers = HttpHeaders()
+	    headers.setLocation(uri.path("/api/books/{uuid}").buildAndExpand(newBook.bookId).toUri());
+		
+		Logger.info("The book is saved id:{}", newBook.bookId);
+		
+	    return ResponseEntity<Book>(newBook,  headers, HttpStatus.CREATED)
+		
+	}	
 
-    @PutMapping("/books/{uuid}")
-    fun updateBookById(@PathVariable("uuid") bookId: UUID, @RequestBody payload: Book): Book =
-            bookService.updateBookById(bookId, payload)
+    @PutMapping("/book/{uuid}")
+	fun updateBookById(@PathVariable("uuid") bookId: UUID, @RequestBody payload: Book): ResponseEntity<Book> {
 
-    @DeleteMapping("/books/{uuid}")
-    fun deleteBooksById(@PathVariable("uuid") bookId: UUID): Unit =
-            bookService.deleteBooksById(bookId)
+		try
+		{			
+		    return ResponseEntity<Book>(bookService.updateBookById(bookId, payload), HttpStatus.OK)			
+		}
+		catch (e: BookNotFoundException)
+		{
+			Logger.info("There is no book with id: {}", bookId);
+			Logger.debug("There is no book with id: {} title:{} message:{}", bookId, e.title, e.message);
+			
+		    return ResponseEntity<Book>(HttpStatus.NOT_FOUND)
+		}					
+		
+	}	
 	
 }

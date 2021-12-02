@@ -7,6 +7,12 @@ import ir.saeidbabaei.bookstore.model.Book
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
+import org.springframework.http.ResponseEntity
+import org.springframework.util.ObjectUtils
+import org.springframework.http.HttpHeaders
+import org.springframework.web.util.UriComponentsBuilder
+import org.slf4j.LoggerFactory
+import java.util.Optional
 
 /**
  * @author Saeid Babaei
@@ -15,30 +21,53 @@ import java.util.UUID
 @Service
 class BookService(private val bookRepository: BookRepository) {
 	
+	private val Logger = LoggerFactory.getLogger(javaClass)
+	
     /**
-     * Get all books list.
+     * Get active books list.
      *
      * @return the list
      */
-    fun getAllBooks(): List<Book> = bookRepository.findAll()
+    fun getAllActiveBooks(): List<Book> {
+
+		Logger.info("Getting active books");
+			
+		val books = bookRepository.findByActiveTrue()
+		
+		Logger.info("Active books: {}", books.size);	
+		
+	    return books
+	} 
+
 
     /**
      * Gets books by id.
      *
      * @param bookId the book id
-     * @return the book by id
-     * @throws BookNotFoundException the book not found exception
+     * @return the book
      */
-    fun getBooksById(bookId: UUID): Book = bookRepository.findById(bookId)
-            .orElseThrow { BookNotFoundException(HttpStatus.NOT_FOUND, "No matching book was found") }
+    fun getBookById(bookId: UUID): Book {
+
+		Logger.info("Getting book with id: {}" , bookId);
+				
+		return  bookRepository.findById(bookId)
+				.orElseThrow { BookNotFoundException("NOT_FOUND", "No matching book was found") }			
+			
+	} 
 
     /**
      * Create book.
      *
-     * @param book the book
+     * @param book the book details
      * @return the book
      */
-    fun createBook(book: Book): Book = bookRepository.save(book)
+    fun createBook(book: Book): Book {
+		
+		Logger.info("Saving book: {}", book.title);
+		
+		return bookRepository.save(book)
+		
+	}
 
     /**
      * Update book.
@@ -46,33 +75,35 @@ class BookService(private val bookRepository: BookRepository) {
      * @param bookId the book id
      * @param book the book details
      * @return the book
-     * @throws BookNotFoundException the book not found exception
      */
     fun updateBookById(bookId: UUID, book: Book): Book {
-        return if (bookRepository.existsById(bookId)) {
-            bookRepository.save(
+				
+        if (bookRepository.existsById(bookId)) {
+			
+			Logger.info("Updating book: {}", book.toString());
+			
+            val updatedBook = bookRepository.save(
                     Book(
-                            bookId = book.bookId,
+                            bookId = bookId,
                             title = book.title,
                             author = book.author,
                             price = book.price,
                             active = book.active,
                     )
             )
-        } else throw BookNotFoundException(HttpStatus.NOT_FOUND, "No matching book was found")
-    }
+			
+			Logger.info("Updated book: {}", updatedBook.bookId);
+			
+			return updatedBook
+			
+        }
+		else
+			{
+				Logger.info("No matching book id: {}", bookId);
+				
+				throw BookNotFoundException("NOT_FOUND", "No matching book was found")
+			}
 
-    /**
-     * Delete book.
-     *
-     * @param bookId the book id
-     * @return the map
-     * @throws BookNotFoundException the book not found exception
-     */
-    fun deleteBooksById(bookId: UUID) {
-        return if (bookRepository.existsById(bookId)) {
-            bookRepository.deleteById(bookId)
-        } else throw BookNotFoundException(HttpStatus.NOT_FOUND, "No matching book was found")
     }
 		
 }

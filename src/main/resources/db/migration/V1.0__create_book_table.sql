@@ -1,5 +1,5 @@
     Create Table IF NOT EXISTS book (
-       book_id binary(255) not null,
+        book_id binary(16) not null,
         active bit not null,
         author varchar(255),
         price decimal(19,2) not null,
