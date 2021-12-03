@@ -13,6 +13,9 @@ import org.springframework.http.HttpHeaders
 import org.springframework.web.util.UriComponentsBuilder
 import org.slf4j.LoggerFactory
 import java.util.Optional
+import java.sql.SQLIntegrityConstraintViolationException
+import ir.saeidbabaei.bookstore.exception.DuplicateBookException
+import org.springframework.dao.DataIntegrityViolationException
 
 /**
  * @author Saeid Babaei
@@ -45,6 +48,7 @@ class BookService(private val bookRepository: BookRepository) {
      *
      * @param bookId the book id
      * @return the book
+	 * @throw BookNotFoundException	 
      */
     fun getBookById(bookId: UUID): Book {
 
@@ -60,12 +64,28 @@ class BookService(private val bookRepository: BookRepository) {
      *
      * @param book the book details
      * @return the book
+	 * @throw DuplicateBookException
+	 * @throw BookNotFoundException	 
      */
     fun createBook(book: Book): Book {
 		
 		Logger.info("Saving book: {}", book.title);
 		
-		return bookRepository.save(book)
+		try
+		{
+			val newBook = bookRepository.save(book)
+			
+			Logger.info("Book saved - bookId: {}", newBook.bookId)
+			
+			return newBook
+			
+		}
+		catch (e: DataIntegrityViolationException) {
+			
+			Logger.info("Book did't save - Duplicate book", book.title)
+			
+			throw DuplicateBookException("CONFLICT", "Duplicate book")		
+		}
 		
 	}
 
@@ -75,26 +95,38 @@ class BookService(private val bookRepository: BookRepository) {
      * @param bookId the book id
      * @param book the book details
      * @return the book
+	 * @throw DuplicateBookException
+	 * @throw BookNotFoundException
      */
     fun updateBookById(bookId: UUID, book: Book): Book {
 				
         if (bookRepository.existsById(bookId)) {
 			
 			Logger.info("Updating book: {}", book.toString());
-			
-            val updatedBook = bookRepository.save(
-                    Book(
-                            bookId = bookId,
-                            title = book.title,
-                            author = book.author,
-                            price = book.price,
-                            active = book.active,
-                    )
-            )
-			
-			Logger.info("Updated book: {}", updatedBook.bookId);
-			
-			return updatedBook
+											
+			try
+			{
+	            val updatedBook = bookRepository.save(
+	                    Book(
+	                            bookId = bookId,
+	                            title = book.title,
+	                            author = book.author,
+	                            price = book.price,
+	                            active = book.active,
+	                    )
+	            )
+				
+	            Logger.info("Book Updated: {}", updatedBook.bookId);
+				
+				return updatedBook
+				
+			}
+			catch (e: DataIntegrityViolationException) {
+				
+				Logger.info("Book did't save - Duplicate book", book.title)
+				
+				throw DuplicateBookException("CONFLICT", "Duplicate book")		
+			}		
 			
         }
 		else

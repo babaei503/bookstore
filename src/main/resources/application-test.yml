@@ -19,6 +19,6 @@ spring:
     console:
       enabled: true
   flyway:
-    enabled: false
+    enabled: true
     group: true    
     locations: classpath:db/migration

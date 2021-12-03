@@ -19,6 +19,7 @@ import org.springframework.util.ObjectUtils
 import org.springframework.http.HttpHeaders
 import org.slf4j.LoggerFactory
 import ir.saeidbabaei.bookstore.exception.BookNotFoundException
+import ir.saeidbabaei.bookstore.exception.DuplicateBookException
 
 /**
  * Controller for REST API endpoints
@@ -55,7 +56,7 @@ class BookController(private val bookService: BookService) {
 		catch (e: BookNotFoundException)
 		{
 			Logger.info("There is no book with id: {}", bookId);
-			Logger.debug("There is no book with id: {} title:{} message:{}", bookId, e.title, e.message);
+			Logger.debug("There is no book with id: {} title:{} message:{}", bookId, e.title, e.reason);
 			
 		    return ResponseEntity<Book>(HttpStatus.NOT_FOUND)
 		}
@@ -64,23 +65,20 @@ class BookController(private val bookService: BookService) {
 
     @PostMapping("/book")
 	fun createBook(@RequestBody payload: Book, uri: UriComponentsBuilder): ResponseEntity<Book> {
-		
-		val newBook = bookService.createBook(payload)
-		
-		if (ObjectUtils.isEmpty(newBook)) {
+
+		try
+		{		
+			val newBook = bookService.createBook(payload)
+				
+		    val headers = HttpHeaders()
+		    headers.setLocation(uri.path("/api/books/{uuid}").buildAndExpand(newBook.bookId).toUri());
 			
-			Logger.debug("The book is not saved");
-			
-	        return ResponseEntity<Book>(HttpStatus.BAD_REQUEST)
-			
-	    }
-		
-	    val headers = HttpHeaders()
-	    headers.setLocation(uri.path("/api/books/{uuid}").buildAndExpand(newBook.bookId).toUri());
-		
-		Logger.info("The book is saved id:{}", newBook.bookId);
-		
-	    return ResponseEntity<Book>(newBook,  headers, HttpStatus.CREATED)
+		    return ResponseEntity<Book>(newBook,  headers, HttpStatus.CREATED)
+		}
+		catch (e: DuplicateBookException)
+		{		
+		    return ResponseEntity<Book>(HttpStatus.CONFLICT)
+		}		
 		
 	}	
 
@@ -92,11 +90,12 @@ class BookController(private val bookService: BookService) {
 		    return ResponseEntity<Book>(bookService.updateBookById(bookId, payload), HttpStatus.OK)			
 		}
 		catch (e: BookNotFoundException)
-		{
-			Logger.info("There is no book with id: {}", bookId);
-			Logger.debug("There is no book with id: {} title:{} message:{}", bookId, e.title, e.message);
-			
+		{		
 		    return ResponseEntity<Book>(HttpStatus.NOT_FOUND)
+		}
+		catch (e: DuplicateBookException)
+		{		
+		    return ResponseEntity<Book>(HttpStatus.CONFLICT)
 		}					
 		
 	}	

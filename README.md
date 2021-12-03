@@ -3,9 +3,9 @@
 This project is about creating a Restful API application with Kotlin and Spring boot with the following API:
 
 ```
-To create a book => Post: book
-To get a book => Get : books/{UUID}
-To update a book => PUT : book/{UUID}
+To create a book => Post: /api/book
+To get a book => Get : /api/books/{UUID}
+To update a book => PUT : /api/book/{UUID}
 ```
 
 ###### Note:
@@ -28,5 +28,13 @@ The book object will be saved in / retrieved from the MySQL bookdb.
 To create the table, the Flyway migration tool is used.
 
 The project contains tests running on the H2 database.
+mvn test -Dspring.profiles.active=test
+
+###### Next steps: 
+- Adding pagination, sorting and filtering to /api/books/ endpoint
+- Adding a few validation annotations like @NotNull, @Min, @max to the entity!
+- Implementing Exception Handling with Spring for a REST API
+- Integrating Swagger 2 Into the Project
+- Writing more tests ;)
 
  

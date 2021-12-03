@@ -76,7 +76,24 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jacksonObjectMapper().writeValueAsString(book)))
 		        .andExpect(MockMvcResultMatchers.status().isBadRequest())
-    }	
+    }
+	
+    @Test
+    fun `Sending POST to the book endpoint with duplicate values returns CONFLICT`() {
+
+        val book = Book(UUID(0,0), "Test title", "Test author", BigDecimal(10.0), true)
+		bookRepository.save(book)
+		
+        val book1 = Book(UUID(0,0), "Test title", "Test author", BigDecimal(10.0), true)
+				
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/book")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jacksonObjectMapper().writeValueAsString(book1)))
+		        .andExpect(MockMvcResultMatchers.status().isConflict())
+
+    }		
 
 	@Test
     fun `Sending GET to the books endpoint returns all avtive books`() {
@@ -89,7 +106,6 @@ class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                         .get("/api/books")
                         .accept(MediaType.APPLICATION_JSON))
-                        //.contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(MockMvcResultMatchers.status().isOk)
 	            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 		        .andExpect(MockMvcResultMatchers.jsonPath("$").exists())				
@@ -106,7 +122,6 @@ class BookControllerTest {
         mockMvc.perform(MockMvcRequestBuilders
                             .get("/api/books")
                             .accept(MediaType.APPLICATION_JSON))
-                            //.contentType(MediaType.APPLICATION_JSON))
 	                .andExpect(MockMvcResultMatchers.status().isNoContent())			
     }
 	
@@ -143,7 +158,27 @@ class BookControllerTest {
 					      .contentType(MediaType.APPLICATION_JSON)
 					      .accept(MediaType.APPLICATION_JSON))
 			      .andExpect(MockMvcResultMatchers.status().isNotFound())		
-    }	
+    }
+	
+	
+    @Test
+    fun `Sending PUT to the book endpoint with duplicate values returns CONFLICT`() {
+
+		val book = Book(UUID(0,0), "Title1", "Author1", BigDecimal(10.0), true)
+		var book1 = Book(UUID(0,0), "Title2", "Author2", BigDecimal(20.0), false)			
+		bookRepository.save(book)
+		book1 = bookRepository.save(book1)
+		
+		val updateBook = Book(UUID(0,0), "Title1", "Author1", BigDecimal(10.0), true)
+					
+		mockMvc.perform(MockMvcRequestBuilders
+			    	      .put("/api/book/{uuid}", book1.bookId)
+					      .content(jacksonObjectMapper().writeValueAsString(updateBook))
+					      .contentType(MediaType.APPLICATION_JSON)
+					      .accept(MediaType.APPLICATION_JSON))
+			      .andExpect(MockMvcResultMatchers.status().isConflict())
+
+    }		
 	
 	@Test
     fun `Sending GET to the books endpoint with a valid bookId returns the book`() {
