@@ -19,4 +19,5 @@ spring:
 logging:
   level:
     '[ir.saeidbabaei.bookstore.service]' : DEBUG
-    '[saeidbabaei.bookstore.controller]' : DEBUG 
+    '[ir.saeidbabaei.bookstore.controller]' : DEBUG
+    '[ir.saeidbabaei.bookstore.exception]' : DEBUG 

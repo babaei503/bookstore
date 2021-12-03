@@ -16,6 +16,7 @@ import java.util.Optional
 import java.sql.SQLIntegrityConstraintViolationException
 import ir.saeidbabaei.bookstore.exception.DuplicateBookException
 import org.springframework.dao.DataIntegrityViolationException
+import ir.saeidbabaei.bookstore.exception.NoActiveBookException
 
 /**
  * @author Saeid Babaei
@@ -35,11 +36,17 @@ class BookService(private val bookRepository: BookRepository) {
 
 		Logger.info("Getting active books");
 			
-		val books = bookRepository.findByActiveTrue()
+		val activeBooks = bookRepository.findByActiveTrue()
 		
-		Logger.info("Active books: {}", books.size);	
+		Logger.info("Active books: {}", activeBooks.size);
 		
-	    return books
+		if (activeBooks.isEmpty()) {
+					
+			throw NoActiveBookException("NO_CONTENT", "There is no active books")	
+
+	    }
+		
+	    return activeBooks
 	} 
 
 
@@ -55,7 +62,7 @@ class BookService(private val bookRepository: BookRepository) {
 		Logger.info("Getting book with id: {}" , bookId);
 				
 		return  bookRepository.findById(bookId)
-				.orElseThrow { BookNotFoundException("NOT_FOUND", "No matching book was found") }			
+				.orElseThrow { BookNotFoundException("NOT_FOUND", "No matching book was found with bookId: " + bookId) }			
 			
 	} 
 
@@ -80,11 +87,8 @@ class BookService(private val bookRepository: BookRepository) {
 			return newBook
 			
 		}
-		catch (e: DataIntegrityViolationException) {
-			
-			Logger.info("Book did't save - Duplicate book", book.title)
-			
-			throw DuplicateBookException("CONFLICT", "Duplicate book")		
+		catch (e: DataIntegrityViolationException) {						
+			throw DuplicateBookException("CONFLICT", "Book did't save - Duplicate book: " + book.title)					
 		}
 		
 	}
@@ -102,7 +106,7 @@ class BookService(private val bookRepository: BookRepository) {
 				
         if (bookRepository.existsById(bookId)) {
 			
-			Logger.info("Updating book: {}", book.toString());
+			Logger.info("Updating book with bookID: {}", bookId);
 											
 			try
 			{
@@ -122,18 +126,14 @@ class BookService(private val bookRepository: BookRepository) {
 				
 			}
 			catch (e: DataIntegrityViolationException) {
-				
-				Logger.info("Book did't save - Duplicate book", book.title)
-				
-				throw DuplicateBookException("CONFLICT", "Duplicate book")		
+										
+				throw DuplicateBookException("CONFLICT", "Book did't save - Duplicate book: " + book.title)		
 			}		
 			
         }
 		else
-			{
-				Logger.info("No matching book id: {}", bookId);
-				
-				throw BookNotFoundException("NOT_FOUND", "No matching book was found")
+			{				
+				throw BookNotFoundException("NOT_FOUND", "No matching book was found whit bookId: " + bookId)				
 			}
 
     }

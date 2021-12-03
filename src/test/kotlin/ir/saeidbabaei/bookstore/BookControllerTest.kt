@@ -79,6 +79,21 @@ class BookControllerTest {
     }
 	
     @Test
+    fun `Sending POST to the book endpoint with an corrupted json returns BAD_REQUEST`() {
+		
+        var book: String = "{ \"bookId\": \""
+		book = book.plus(UUID(0,0))
+		book = book.plus("\", \"title\": \"Test title\", \"author\": \"Test author\" \"active\": true")
+		
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/book")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jacksonObjectMapper().writeValueAsString(book)))
+		        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+    }	
+	
+    @Test
     fun `Sending POST to the book endpoint with duplicate values returns CONFLICT`() {
 
         val book = Book(UUID(0,0), "Test title", "Test author", BigDecimal(10.0), true)

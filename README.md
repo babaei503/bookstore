@@ -32,9 +32,6 @@ mvn test -Dspring.profiles.active=test
 
 ###### Next steps: 
 - Adding pagination, sorting and filtering to /api/books/ endpoint
-- Adding a few validation annotations like @NotNull, @Min, @max to the entity!
-- Implementing Exception Handling with Spring for a REST API
-- Integrating Swagger 2 Into the Project
-- Writing more tests ;)
+- Integrating Swagger into the project
 
  

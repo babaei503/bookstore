@@ -10,6 +10,9 @@ import javax.persistence.Table
 import org.hibernate.annotations.GenericGenerator
 import java.util.UUID
 import java.math.BigDecimal
+import javax.validation.constraints.NotNull
+import javax.validation.constraints.Size;
+import javax.validation.constraints.NotEmpty
 
 
 /**
@@ -27,15 +30,19 @@ class Book(
         val bookId: UUID?,
 		
         @Column(name = "title", nullable = false)
-        val title: String,
+		@field:Size(min = 3, max = 100, message = "The length of title must be between 3 and 100 characters.")
+		@field:NotEmpty(message = "title must not be null or empty")				
+        val title: String?,
 		
         @Column(name = "author", nullable = true)
-        val author: String,
+        val author: String?,
 		
-        @Column(name = "price", nullable = false)	
-        val price: BigDecimal,
+        @Column(name = "price", nullable = false)
+        @field:NotNull(message = "price must not be null or empty")
+        val price: BigDecimal?,
 		
         @Column(name = "active", nullable = false)
-        val active: Boolean
+        @field:NotNull(message = "active must not be null or empty")		
+        val active: Boolean?
 		
 )

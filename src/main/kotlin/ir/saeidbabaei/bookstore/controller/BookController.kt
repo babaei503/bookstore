@@ -20,6 +20,8 @@ import org.springframework.http.HttpHeaders
 import org.slf4j.LoggerFactory
 import ir.saeidbabaei.bookstore.exception.BookNotFoundException
 import ir.saeidbabaei.bookstore.exception.DuplicateBookException
+import javax.validation.Valid
+import org.springframework.validation.annotation.Validated
 
 /**
  * Controller for REST API endpoints
@@ -35,13 +37,6 @@ class BookController(private val bookService: BookService) {
 		
 		val activeBooks = bookService.getAllActiveBooks()
 		
-		if (activeBooks.isEmpty()) {
-			
-			Logger.info("There is no active books");
-			
-	        return ResponseEntity<List<Book>>(HttpStatus.NO_CONTENT)
-	    }
-		
 	    return ResponseEntity<List<Book>>(activeBooks, HttpStatus.OK)
 		
 	}
@@ -49,54 +44,25 @@ class BookController(private val bookService: BookService) {
     @GetMapping("/books/{uuid}")
     fun getBookById(@PathVariable("uuid") bookId: UUID): ResponseEntity<Book> {
 		
-		try
-		{			
-		    return ResponseEntity<Book>(bookService.getBookById(bookId), HttpStatus.OK)			
-		}
-		catch (e: BookNotFoundException)
-		{
-			Logger.info("There is no book with id: {}", bookId);
-			Logger.debug("There is no book with id: {} title:{} message:{}", bookId, e.title, e.reason);
-			
-		    return ResponseEntity<Book>(HttpStatus.NOT_FOUND)
-		}
+    	return ResponseEntity<Book>(bookService.getBookById(bookId), HttpStatus.OK)			
 		
 	}	
 
     @PostMapping("/book")
-	fun createBook(@RequestBody payload: Book, uri: UriComponentsBuilder): ResponseEntity<Book> {
-
-		try
-		{		
-			val newBook = bookService.createBook(payload)
-				
-		    val headers = HttpHeaders()
-		    headers.setLocation(uri.path("/api/books/{uuid}").buildAndExpand(newBook.bookId).toUri());
+	fun createBook(@Valid @RequestBody payload: Book, uri: UriComponentsBuilder): ResponseEntity<Book> {
+	
+		val newBook = bookService.createBook(payload)
 			
-		    return ResponseEntity<Book>(newBook,  headers, HttpStatus.CREATED)
-		}
-		catch (e: DuplicateBookException)
-		{		
-		    return ResponseEntity<Book>(HttpStatus.CONFLICT)
-		}		
+	    val headers = HttpHeaders()
+	    headers.setLocation(uri.path("/api/books/{uuid}").buildAndExpand(newBook.bookId).toUri());
 		
+	    return ResponseEntity<Book>(newBook,  headers, HttpStatus.CREATED)			
 	}	
 
     @PutMapping("/book/{uuid}")
-	fun updateBookById(@PathVariable("uuid") bookId: UUID, @RequestBody payload: Book): ResponseEntity<Book> {
-
-		try
-		{			
-		    return ResponseEntity<Book>(bookService.updateBookById(bookId, payload), HttpStatus.OK)			
-		}
-		catch (e: BookNotFoundException)
-		{		
-		    return ResponseEntity<Book>(HttpStatus.NOT_FOUND)
-		}
-		catch (e: DuplicateBookException)
-		{		
-		    return ResponseEntity<Book>(HttpStatus.CONFLICT)
-		}					
+	fun updateBookById(@PathVariable("uuid") bookId: UUID, @Valid @RequestBody payload: Book): ResponseEntity<Book> {
+		
+	    return ResponseEntity<Book>(bookService.updateBookById(bookId, payload), HttpStatus.OK)						
 		
 	}	
 	
