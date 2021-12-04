@@ -4,16 +4,9 @@ package ir.saeidbabaei.bookstore.service
 import ir.saeidbabaei.bookstore.exception.BookNotFoundException
 import ir.saeidbabaei.bookstore.repository.BookRepository
 import ir.saeidbabaei.bookstore.model.Book
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import java.util.UUID
-import org.springframework.http.ResponseEntity
-import org.springframework.util.ObjectUtils
-import org.springframework.http.HttpHeaders
-import org.springframework.web.util.UriComponentsBuilder
 import org.slf4j.LoggerFactory
-import java.util.Optional
-import java.sql.SQLIntegrityConstraintViolationException
 import ir.saeidbabaei.bookstore.exception.DuplicateBookException
 import org.springframework.dao.DataIntegrityViolationException
 import ir.saeidbabaei.bookstore.exception.NoActiveBookException
@@ -25,7 +18,7 @@ import ir.saeidbabaei.bookstore.exception.NoActiveBookException
 @Service
 class BookService(private val bookRepository: BookRepository) {
 	
-	private val Logger = LoggerFactory.getLogger(javaClass)
+	private val logger = LoggerFactory.getLogger(javaClass)
 	
     /**
      * Get active books list.
@@ -34,11 +27,11 @@ class BookService(private val bookRepository: BookRepository) {
      */
     fun getAllActiveBooks(): List<Book> {
 
-		Logger.info("Getting active books");
+		logger.info("Getting active books")
 			
 		val activeBooks = bookRepository.findByActiveTrue()
 		
-		Logger.info("Active books: {}", activeBooks.size);
+		logger.info("Active books: {}", activeBooks.size)
 		
 		if (activeBooks.isEmpty()) {
 					
@@ -59,10 +52,10 @@ class BookService(private val bookRepository: BookRepository) {
      */
     fun getBookById(bookId: UUID): Book {
 
-		Logger.info("Getting book with id: {}" , bookId);
+		logger.info("Getting book with id: {}" , bookId)
 				
 		return  bookRepository.findById(bookId)
-				.orElseThrow { BookNotFoundException("NOT_FOUND", "No matching book was found with bookId: " + bookId) }			
+				.orElseThrow { BookNotFoundException("NOT_FOUND", "No matching book was found with bookId: $bookId") }
 			
 	} 
 
@@ -76,19 +69,19 @@ class BookService(private val bookRepository: BookRepository) {
      */
     fun createBook(book: Book): Book {
 		
-		Logger.info("Saving book: {}", book.title);
+		logger.info("Saving book: {}", book.title)
 		
 		try
 		{
 			val newBook = bookRepository.save(book)
 			
-			Logger.info("Book saved - bookId: {}", newBook.bookId)
+			logger.info("Book saved - bookId: {}", newBook.bookId)
 			
 			return newBook
 			
 		}
 		catch (e: DataIntegrityViolationException) {						
-			throw DuplicateBookException("CONFLICT", "Book did't save - Duplicate book: " + book.title)					
+			throw DuplicateBookException("CONFLICT", "Book didn't save - Duplicate book: " + book.title)
 		}
 		
 	}
@@ -106,7 +99,7 @@ class BookService(private val bookRepository: BookRepository) {
 				
         if (bookRepository.existsById(bookId)) {
 			
-			Logger.info("Updating book with bookID: {}", bookId);
+			logger.info("Updating book with bookID: {}", bookId)
 											
 			try
 			{
@@ -120,20 +113,20 @@ class BookService(private val bookRepository: BookRepository) {
 	                    )
 	            )
 				
-	            Logger.info("Book Updated: {}", updatedBook.bookId);
+	            logger.info("Book Updated: {}", updatedBook.bookId)
 				
 				return updatedBook
 				
 			}
 			catch (e: DataIntegrityViolationException) {
 										
-				throw DuplicateBookException("CONFLICT", "Book did't save - Duplicate book: " + book.title)		
+				throw DuplicateBookException("CONFLICT", "Book didn't save - Duplicate book: " + book.title)
 			}		
 			
         }
 		else
 			{				
-				throw BookNotFoundException("NOT_FOUND", "No matching book was found whit bookId: " + bookId)				
+				throw BookNotFoundException("NOT_FOUND", "No matching book was found whit bookId: $bookId")
 			}
 
     }

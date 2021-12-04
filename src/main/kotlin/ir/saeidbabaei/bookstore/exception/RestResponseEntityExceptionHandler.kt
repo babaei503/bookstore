@@ -1,7 +1,6 @@
 package ir.saeidbabaei.bookstore.exception
 
 import org.springframework.web.bind.annotation.ControllerAdvice
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.context.request.WebRequest
 import org.springframework.http.ResponseEntity
@@ -9,13 +8,12 @@ import java.util.Date
 import org.springframework.http.HttpStatus
 import org.slf4j.LoggerFactory
 import org.springframework.web.bind.MethodArgumentNotValidException
-import org.springframework.http.HttpHeaders
 import org.springframework.http.converter.HttpMessageNotReadableException
 
 @ControllerAdvice
 class RestResponseEntityExceptionHandler {
 
-	private val Logger = LoggerFactory.getLogger(javaClass)
+	private val logger = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(value = [(NoActiveBookException::class)])
     fun handleNoActiveBookException(ex: NoActiveBookException, request: WebRequest): ResponseEntity<ApiError> {
@@ -29,7 +27,7 @@ class RestResponseEntityExceptionHandler {
                 request.getDescription(false)
         )
 		
-		Logger.info(apiError.toString());
+		logger.info(apiError.toString())
 		
         return ResponseEntity(HttpStatus.NO_CONTENT)
     }
@@ -46,7 +44,7 @@ class RestResponseEntityExceptionHandler {
                 request.getDescription(false)
         )
 		
-		Logger.info(apiError.toString());
+		logger.info(apiError.toString())
 		
         return ResponseEntity(apiError, HttpStatus.NOT_FOUND)
     }
@@ -63,7 +61,7 @@ class RestResponseEntityExceptionHandler {
                 request.getDescription(false)
         )
 		
-		Logger.info(apiError.toString());
+		logger.info(apiError.toString())
 		
         return ResponseEntity(apiError, HttpStatus.CONFLICT)
     }
@@ -80,7 +78,7 @@ class RestResponseEntityExceptionHandler {
 				                errors,
 				                request.getDescription(false))
 		
-		Logger.info(apiError.toString());
+		logger.info(apiError.toString())
 		
         return ResponseEntity(apiError, HttpStatus.BAD_REQUEST)
     }
@@ -96,7 +94,7 @@ class RestResponseEntityExceptionHandler {
 				                errors,
 				                request.getDescription(false))
 		
-		Logger.info(apiError.toString() + ex.message);
+		logger.info(apiError.toString() + ex.message)
 		
         return ResponseEntity(apiError, HttpStatus.BAD_REQUEST)
     }		
