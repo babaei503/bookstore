@@ -42,7 +42,7 @@ class BookService(private val bookRepository: BookRepository) {
 		
 		if (activeBooks.isEmpty()) {
 					
-			throw NoActiveBookException("NO_CONTENT", "There is no active books")	
+			throw NoActiveBookException("NO_CONTENT", "There is no active book")	
 
 	    }
 		

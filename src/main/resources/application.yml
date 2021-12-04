@@ -16,6 +16,9 @@ spring:
     enabled: true
     group: true    
     locations: classpath:db/migration
+  mvc:
+    pathmatch:
+      matching-strategy: ant-path-matcher
 logging:
   level:
     '[ir.saeidbabaei.bookstore.service]' : DEBUG

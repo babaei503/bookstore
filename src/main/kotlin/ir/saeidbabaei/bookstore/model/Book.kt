@@ -13,6 +13,7 @@ import java.math.BigDecimal
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Size;
 import javax.validation.constraints.NotEmpty
+import io.swagger.annotations.ApiModelProperty
 
 
 /**
@@ -27,6 +28,7 @@ class Book(
 		@GeneratedValue( generator = "uuid2" )
 		@GenericGenerator( name = "uuid2", strategy = "uuid2" )	
 		@Column(name = "bookId", columnDefinition = "BINARY(16)")
+		@ApiModelProperty(readOnly = true)
         val bookId: UUID?,
 		
         @Column(name = "title", nullable = false)

@@ -22,6 +22,12 @@ import ir.saeidbabaei.bookstore.exception.BookNotFoundException
 import ir.saeidbabaei.bookstore.exception.DuplicateBookException
 import javax.validation.Valid
 import org.springframework.validation.annotation.Validated
+import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiResponse
+import io.swagger.annotations.ApiResponses
+import org.springframework.boot.autoconfigure.web.WebProperties.Resources.Chain.Strategy.Content
+import ir.saeidbabaei.bookstore.exception.ApiError
+import org.springframework.web.bind.annotation.ResponseStatus
 
 /**
  * Controller for REST API endpoints
@@ -31,7 +37,14 @@ import org.springframework.validation.annotation.Validated
 class BookController(private val bookService: BookService) {
 
 	private val Logger = LoggerFactory.getLogger(javaClass)
-		
+
+	@ApiOperation(value = "View a list of active books")
+    @ApiResponses(
+        value = arrayOf(
+            ApiResponse(code = 200, message = "OK", response = Book::class),
+            ApiResponse(code = 204, message = "There is no active book", response = Void::class)
+        )
+    )			
 	@GetMapping("/books")
     fun getAllActiveBooks(): ResponseEntity<List<Book>> {	
 		
@@ -41,6 +54,13 @@ class BookController(private val bookService: BookService) {
 		
 	}
 
+	@ApiOperation(value = "Search a book with an ID")
+    @ApiResponses(
+        value = arrayOf(
+            ApiResponse(code = 200, message = "OK", response = Book::class),
+            ApiResponse(code = 404, message = "No matching book was found with bookId", response = ApiError::class)
+        )
+    )	
     @GetMapping("/books/{uuid}")
     fun getBookById(@PathVariable("uuid") bookId: UUID): ResponseEntity<Book> {
 		
@@ -48,10 +68,20 @@ class BookController(private val bookService: BookService) {
 		
 	}	
 
+	@ApiOperation(value = "Add a book")
+    @ApiResponses(
+        value = arrayOf(
+            ApiResponse(code = 201, message = "Created", response = Book::class),
+            ApiResponse(code = 409, message = "Book did't save - Duplicate book", response = ApiError::class),
+            ApiResponse(code = 400, message = "Validation Error", response = ApiError::class),
+			ApiResponse(code = 400, message = "Request Error", response = ApiError::class),		
+        )
+    )		
     @PostMapping("/book")
-	fun createBook(@Valid @RequestBody payload: Book, uri: UriComponentsBuilder): ResponseEntity<Book> {
+	@ResponseStatus( HttpStatus.CREATED )
+	fun createBook(@Valid @RequestBody book: Book, uri: UriComponentsBuilder): ResponseEntity<Book> {
 	
-		val newBook = bookService.createBook(payload)
+		val newBook = bookService.createBook(book)
 			
 	    val headers = HttpHeaders()
 	    headers.setLocation(uri.path("/api/books/{uuid}").buildAndExpand(newBook.bookId).toUri());
@@ -59,10 +89,20 @@ class BookController(private val bookService: BookService) {
 	    return ResponseEntity<Book>(newBook,  headers, HttpStatus.CREATED)			
 	}	
 
+	@ApiOperation(value = "Update a book")
+    @ApiResponses(
+        value = arrayOf(
+            ApiResponse(code = 200, message = "OK", response = Book::class),
+            ApiResponse(code = 404, message = "No matching book was found with bookId", response = ApiError::class),			
+            ApiResponse(code = 409, message = "Book did't save - Duplicate book", response = ApiError::class),
+            ApiResponse(code = 400, message = "Validation Error", response = ApiError::class),
+			ApiResponse(code = 400, message = "Request Error", response = ApiError::class),		
+        )
+    )
     @PutMapping("/book/{uuid}")
-	fun updateBookById(@PathVariable("uuid") bookId: UUID, @Valid @RequestBody payload: Book): ResponseEntity<Book> {
+	fun updateBookById(@PathVariable("uuid") bookId: UUID, @Valid @RequestBody book: Book): ResponseEntity<Book> {
 		
-	    return ResponseEntity<Book>(bookService.updateBookById(bookId, payload), HttpStatus.OK)						
+	    return ResponseEntity<Book>(bookService.updateBookById(bookId, book), HttpStatus.OK)						
 		
 	}	
 	

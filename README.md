@@ -28,10 +28,14 @@ The book object will be saved in / retrieved from the MySQL bookdb.
 To create the table, the Flyway migration tool is used.
 
 The project contains tests running on the H2 database.
+
 mvn test -Dspring.profiles.active=test
+
+You will see the generated documentation rendered by Swagger UI in your browser:
+
+http://localhost:8080/swagger-ui.html
 
 ###### Next steps: 
 - Adding pagination, sorting and filtering to /api/books/ endpoint
-- Integrating Swagger into the project
 
  
